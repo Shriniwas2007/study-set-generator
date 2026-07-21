@@ -47,17 +47,17 @@ export function MaterialInput({
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+        <h2 className="font-display text-lg font-semibold text-ink">
           Study material
         </h2>
-        <div className="flex rounded-lg border border-zinc-200 p-0.5 dark:border-zinc-800">
+        <div className="flex rounded-lg border border-hairline p-0.5">
           <button
             type="button"
             onClick={() => onModeChange("paste")}
             className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
               mode === "paste"
-                ? "bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900"
-                : "text-zinc-600 dark:text-zinc-400"
+                ? "bg-accent text-accent-ink"
+                : "text-ink-secondary hover:text-ink"
             }`}
           >
             Paste text
@@ -67,8 +67,8 @@ export function MaterialInput({
             onClick={() => onModeChange("upload")}
             className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
               mode === "upload"
-                ? "bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900"
-                : "text-zinc-600 dark:text-zinc-400"
+                ? "bg-accent text-accent-ink"
+                : "text-ink-secondary hover:text-ink"
             }`}
           >
             Upload PDF
@@ -82,7 +82,7 @@ export function MaterialInput({
           onChange={(e) => onTextChange(e.target.value)}
           placeholder="Paste your lecture notes, textbook chapter, or other study material here..."
           rows={12}
-          className="w-full resize-y rounded-lg border border-zinc-200 bg-white p-3 text-sm text-zinc-900 outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-600"
+          className="w-full resize-y rounded-lg border border-hairline bg-page/60 p-3 text-sm text-ink outline-none transition-colors focus:border-accent focus:bg-surface"
         />
       ) : (
         <div>
@@ -96,8 +96,8 @@ export function MaterialInput({
             onClick={() => inputRef.current?.click()}
             className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-10 text-center transition-colors ${
               isDragActive
-                ? "border-zinc-400 bg-zinc-50 dark:border-zinc-500 dark:bg-zinc-900"
-                : "border-zinc-200 dark:border-zinc-800"
+                ? "border-accent bg-accent-soft"
+                : "border-hairline hover:border-ink-muted"
             }`}
           >
             <input
@@ -109,28 +109,22 @@ export function MaterialInput({
             />
             {file ? (
               <>
-                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                  {file.name}
-                </p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                <p className="text-sm font-medium text-ink">{file.name}</p>
+                <p className="text-xs text-ink-muted">
                   {(file.size / 1024).toFixed(0)} KB — click or drop to replace
                 </p>
               </>
             ) : (
               <>
-                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                <p className="text-sm font-medium text-ink">
                   Drag and drop a PDF here, or click to browse
                 </p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  PDF files only
-                </p>
+                <p className="text-xs text-ink-muted">PDF files only</p>
               </>
             )}
           </div>
           {fileError && (
-            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-              {fileError}
-            </p>
+            <p className="mt-2 text-sm text-danger">{fileError}</p>
           )}
         </div>
       )}

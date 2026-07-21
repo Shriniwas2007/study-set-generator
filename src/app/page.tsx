@@ -21,6 +21,26 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+function BrandMark() {
+  return (
+    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent text-accent-ink shadow-sm shadow-accent/20">
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M12 6.5c-1.8-1.4-4-2-6.5-2-.6 0-1 .4-1 1v11c0 .6.4 1 1 1 2.5 0 4.7.6 6.5 2 1.8-1.4 4-2 6.5-2 .6 0 1-.4 1-1v-11c0-.6-.4-1-1-1-2.5 0-4.7.6-6.5 2Z" />
+        <path d="M12 6.5v13" />
+      </svg>
+    </div>
+  );
+}
+
 export default function Home() {
   const [materialMode, setMaterialMode] = useState<MaterialMode>("paste");
   const [materialText, setMaterialText] = useState("");
@@ -102,19 +122,25 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center bg-zinc-50 py-12 dark:bg-black">
+    <div className="flex flex-1 flex-col items-center bg-page py-12">
       <main className="flex w-full max-w-4xl flex-col gap-8 px-6">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-            AI Study Scheduler
-          </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Upload your material and deadlines to generate flashcards, a mind
-            map, a quiz, and a day-by-day study plan.
-          </p>
-        </div>
+        <header className="flex items-center gap-3.5">
+          <BrandMark />
+          <div className="flex flex-col gap-0.5">
+            <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
+              AI Study Scheduler
+            </h1>
+            <p className="text-sm text-ink-secondary">
+              Upload your material and deadlines to generate flashcards, a
+              mind map, a quiz, and a day-by-day study plan.
+            </p>
+          </div>
+        </header>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-8 rounded-2xl border border-hairline bg-surface p-6 shadow-sm sm:p-8"
+        >
           <MaterialInput
             mode={materialMode}
             onModeChange={setMaterialMode}
@@ -132,13 +158,15 @@ export default function Home() {
           />
 
           {error && (
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <p className="rounded-lg border border-danger/20 bg-danger-soft px-3.5 py-2.5 text-sm text-danger-ink">
+              {error}
+            </p>
           )}
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="self-start rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            className="self-start rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-accent-ink shadow-sm transition-all hover:bg-accent-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? "Generating..." : "Generate study package"}
           </button>
@@ -151,7 +179,10 @@ export default function Home() {
               activeTab={activeResultTab}
               onChange={setActiveResultTab}
             />
-            <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+            <div
+              key={activeResultTab}
+              className="animate-panel-in rounded-2xl border border-hairline bg-surface p-6 shadow-sm sm:p-8"
+            >
               {activeResultTab === "flashcards" && (
                 <FlashcardsView flashcards={result.flashcards} />
               )}

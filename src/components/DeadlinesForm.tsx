@@ -31,14 +31,14 @@ export function DeadlinesForm({
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+      <h2 className="font-display text-lg font-semibold text-ink">
         Deadlines
       </h2>
 
       <div className="flex flex-col gap-1">
         <label
           htmlFor="study-start-date"
-          className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+          className="text-sm font-medium text-ink-secondary"
         >
           Study start date
         </label>
@@ -47,7 +47,7 @@ export function DeadlinesForm({
           type="date"
           value={studyStartDate}
           onChange={(e) => onStudyStartDateChange(e.target.value)}
-          className="w-full max-w-xs rounded-lg border border-zinc-200 bg-white p-2 text-sm text-zinc-900 outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-600"
+          className="w-full max-w-xs rounded-lg border border-hairline bg-page/60 p-2 text-sm text-ink outline-none transition-colors focus:border-accent focus:bg-surface"
         />
       </div>
 
@@ -61,7 +61,7 @@ export function DeadlinesForm({
                 updateDeadline(index, { topic: e.target.value })
               }
               placeholder="Topic name"
-              className="flex-1 rounded-lg border border-zinc-200 bg-white p-2 text-sm text-zinc-900 outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-600"
+              className="flex-1 rounded-lg border border-hairline bg-page/60 p-2 text-sm text-ink outline-none transition-colors focus:border-accent focus:bg-surface"
             />
             <input
               type="date"
@@ -69,14 +69,14 @@ export function DeadlinesForm({
               onChange={(e) =>
                 updateDeadline(index, { dueDate: e.target.value })
               }
-              className="rounded-lg border border-zinc-200 bg-white p-2 text-sm text-zinc-900 outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-600"
+              className="rounded-lg border border-hairline bg-page/60 p-2 text-sm text-ink outline-none transition-colors focus:border-accent focus:bg-surface"
             />
             <button
               type="button"
               onClick={() => removeDeadline(index)}
               disabled={deadlines.length === 1}
               aria-label="Remove deadline"
-              className="rounded-lg border border-zinc-200 p-2 text-sm text-zinc-500 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900"
+              className="rounded-lg border border-hairline p-2 text-sm text-ink-muted transition-colors hover:border-danger/40 hover:bg-danger-soft hover:text-danger-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-hairline disabled:hover:bg-transparent disabled:hover:text-ink-muted"
             >
               ✕
             </button>
@@ -87,7 +87,7 @@ export function DeadlinesForm({
       <button
         type="button"
         onClick={addDeadline}
-        className="self-start rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
+        className="self-start rounded-lg border border-hairline px-3 py-1.5 text-sm font-medium text-ink-secondary transition-colors hover:border-accent hover:bg-accent-soft hover:text-accent"
       >
         + Add topic
       </button>
