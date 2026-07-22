@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { pickEncouragement } from "@/lib/encouragement";
 import type { QuizQuestion } from "@/types/study";
 
 interface QuizViewProps {
@@ -54,6 +55,7 @@ export function QuizView({ quiz }: QuizViewProps) {
   const [answers, setAnswers] = useState<(number | null)[]>(
     () => new Array(quiz.length).fill(null),
   );
+  const [encouragement, setEncouragement] = useState<string | null>(null);
 
   if (quiz.length === 0) {
     return (
@@ -76,18 +78,50 @@ export function QuizView({ quiz }: QuizViewProps) {
           ? "Nice work."
           : "Worth another pass.";
 
+    const focusTopics = Array.from(
+      new Set(
+        quiz
+          .filter((q, i) => answers[i] !== null && answers[i] !== q.correctIndex)
+          .map((q) => q.topic),
+      ),
+    );
+
     return (
       <div className="flex flex-col items-center gap-5 py-6 text-center">
         <ScoreRing score={score} total={quiz.length} />
         <p className="font-display text-lg font-semibold text-ink">
           {verdict}
         </p>
+
+        <div className="w-full max-w-sm rounded-xl border border-hairline bg-page/60 p-4 text-left">
+          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-muted">
+            Focus areas
+          </p>
+          {focusTopics.length > 0 ? (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {focusTopics.map((topic, i) => (
+                <span
+                  key={i}
+                  className="rounded-full bg-danger-soft px-2.5 py-0.5 text-xs font-medium text-danger-ink"
+                >
+                  {topic}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-sm text-ink-secondary">
+              No weak spots — every topic held up.
+            </p>
+          )}
+        </div>
+
         <button
           type="button"
           onClick={() => {
             setIndex(0);
             setSelected(null);
             setAnswers(new Array(quiz.length).fill(null));
+            setEncouragement(null);
           }}
           className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-accent-ink shadow-sm transition-all hover:bg-accent-hover active:scale-[0.98]"
         >
@@ -108,6 +142,11 @@ export function QuizView({ quiz }: QuizViewProps) {
       next[index] = optionIndex;
       return next;
     });
+    if (optionIndex === question.correctIndex) {
+      setEncouragement(pickEncouragement(encouragement ?? undefined));
+    } else {
+      setEncouragement(null);
+    }
   }
 
   function next() {
@@ -186,6 +225,10 @@ export function QuizView({ quiz }: QuizViewProps) {
           );
         })}
       </div>
+
+      {hasAnswered && encouragement && (
+        <p className="text-sm font-medium text-success-ink">{encouragement}</p>
+      )}
 
       {hasAnswered && (
         <div className="rounded-lg bg-accent-soft p-4 text-sm text-ink">

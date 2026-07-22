@@ -41,12 +41,14 @@ const QuizQuestionSchema = z.object({
   options: z.tuple([z.string(), z.string(), z.string(), z.string()]),
   correctIndex: z.number().int().min(0).max(3),
   explanation: z.string(),
+  topic: z.string(),
 });
 
 const StudyPlanDaySchema = z.object({
   date: z.string(),
   topics: z.array(z.string()),
   tasks: z.array(z.string()),
+  estimatedMinutes: z.number().int().min(1),
 });
 
 const StudyPackageSchema = z.object({
@@ -90,8 +92,8 @@ ${truncatedMaterial}
 Generate:
 - flashcards: question/answer pairs covering the key concepts in the material.
 - mindMap: a hierarchical breakdown of the material's topic structure, nested up to three levels below the root topic (leave "subtopics" empty on nodes that don't need to go deeper).
-- quiz: multiple-choice questions, each with exactly 4 options, a zero-based correctIndex, and an explanation of the correct answer.
-- studyPlan: a day-by-day plan with one entry per study day from ${studyStartDate} through the last deadline. Front-load harder or foundational topics earlier, and schedule review and quiz days immediately before each deadline.`;
+- quiz: multiple-choice questions, each with exactly 4 options, a zero-based correctIndex, an explanation of the correct answer, and a "topic" field naming the specific topic or subtopic it tests. Use the same topic names that appear in the mind map (a branch or subtopic label) or in the deadlines list, so a wrong answer can be traced back to a recognizable topic the user can go review.
+- studyPlan: a day-by-day plan with one entry per study day from ${studyStartDate} through the last deadline. Front-load harder or foundational topics earlier, and schedule review and quiz days immediately before each deadline. Each day also needs "estimatedMinutes": a rough, honest estimate of study time in minutes for that day, based on how much material and how many tasks that day covers (a light review day might be 20-30 minutes, a day introducing several new foundational topics might be 60-90 minutes).`;
 
   const stream = client.messages.stream({
     model: MODEL,

@@ -27,12 +27,14 @@ export interface QuizQuestion {
   options: [string, string, string, string];
   correctIndex: number;
   explanation: string;
+  topic: string;
 }
 
 export interface StudyPlanDay {
   date: string;
   topics: string[];
   tasks: string[];
+  estimatedMinutes: number;
 }
 
 export interface StudyPackage {
