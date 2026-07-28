@@ -45,6 +45,7 @@ export default function Home() {
   const [materialMode, setMaterialMode] = useState<MaterialMode>("paste");
   const [materialText, setMaterialText] = useState("");
   const [materialFile, setMaterialFile] = useState<File | null>(null);
+  const [materialImages, setMaterialImages] = useState<File[]>([]);
 
   const [studyStartDate, setStudyStartDate] = useState(today());
   const [deadlines, setDeadlines] = useState<DeadlineEntry[]>([
@@ -62,6 +63,9 @@ export default function Home() {
     }
     if (materialMode === "upload" && !materialFile) {
       return "Please upload a PDF.";
+    }
+    if (materialMode === "image" && materialImages.length === 0) {
+      return "Please upload at least one image.";
     }
     if (!studyStartDate) {
       return "Please set a study start date.";
@@ -97,6 +101,10 @@ export default function Home() {
 
       if (materialMode === "upload" && materialFile) {
         formData.set("file", materialFile);
+      } else if (materialMode === "image" && materialImages.length > 0) {
+        for (const image of materialImages) {
+          formData.append("images", image);
+        }
       } else {
         formData.set("text", materialText);
       }
@@ -148,6 +156,8 @@ export default function Home() {
             onTextChange={setMaterialText}
             file={materialFile}
             onFileChange={setMaterialFile}
+            images={materialImages}
+            onImagesChange={setMaterialImages}
           />
 
           <DeadlinesForm

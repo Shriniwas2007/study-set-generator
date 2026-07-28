@@ -12,6 +12,25 @@ const MODEL = "claude-sonnet-5";
 // textbook-chapter upload, which is the app's stated scope.
 const MAX_MATERIAL_CHARS = 300_000;
 
+// Generous enough for a multi-page photographed chapter, small enough to keep
+// request size and latency predictable.
+const MAX_MATERIAL_IMAGES = 20;
+
+export type MaterialImageMediaType =
+  | "image/jpeg"
+  | "image/png"
+  | "image/gif"
+  | "image/webp";
+
+export interface MaterialImage {
+  base64: string;
+  mediaType: MaterialImageMediaType;
+}
+
+export type StudyMaterial =
+  | { type: "text"; text: string }
+  | { type: "images"; images: MaterialImage[] };
+
 const FlashcardSchema = z.object({
   question: z.string(),
   answer: z.string(),
@@ -64,20 +83,30 @@ export interface GenerateStudyPackageResult {
 }
 
 export async function generateStudyPackage(
-  materialText: string,
+  material: StudyMaterial,
   deadlines: DeadlineEntry[],
   studyStartDate: string,
 ): Promise<GenerateStudyPackageResult> {
-  const materialTruncated = materialText.length > MAX_MATERIAL_CHARS;
-  const truncatedMaterial = materialTruncated
-    ? materialText.slice(0, MAX_MATERIAL_CHARS)
-    : materialText;
-
   const deadlinesList = deadlines
     .map((d) => `- ${d.topic}: due ${d.dueDate}`)
     .join("\n");
 
-  const prompt = `You are an expert study coach. Generate a complete study package from the material and deadlines below.
+  const instructions = `Generate:
+- flashcards: question/answer pairs covering the key concepts in the material.
+- mindMap: a hierarchical breakdown of the material's topic structure, nested up to three levels below the root topic (leave "subtopics" empty on nodes that don't need to go deeper).
+- quiz: multiple-choice questions, each with exactly 4 options, a zero-based correctIndex, an explanation of the correct answer, and a "topic" field naming the specific topic or subtopic it tests. Use the same topic names that appear in the mind map (a branch or subtopic label) or in the deadlines list, so a wrong answer can be traced back to a recognizable topic the user can go review.
+- studyPlan: a day-by-day plan with one entry per study day from ${studyStartDate} through the last deadline. Front-load harder or foundational topics earlier, and schedule review and quiz days immediately before each deadline. Each day also needs "estimatedMinutes": a rough, honest estimate of study time in minutes for that day, based on how much material and how many tasks that day covers (a light review day might be 20-30 minutes, a day introducing several new foundational topics might be 60-90 minutes).`;
+
+  let materialTruncated: boolean;
+  let content: string | Anthropic.ContentBlockParam[];
+
+  if (material.type === "text") {
+    materialTruncated = material.text.length > MAX_MATERIAL_CHARS;
+    const truncatedMaterial = materialTruncated
+      ? material.text.slice(0, MAX_MATERIAL_CHARS)
+      : material.text;
+
+    content = `You are an expert study coach. Generate a complete study package from the material and deadlines below.
 
 Study start date: ${studyStartDate}
 
@@ -89,11 +118,37 @@ Study material:
 ${truncatedMaterial}
 </material>
 
-Generate:
-- flashcards: question/answer pairs covering the key concepts in the material.
-- mindMap: a hierarchical breakdown of the material's topic structure, nested up to three levels below the root topic (leave "subtopics" empty on nodes that don't need to go deeper).
-- quiz: multiple-choice questions, each with exactly 4 options, a zero-based correctIndex, an explanation of the correct answer, and a "topic" field naming the specific topic or subtopic it tests. Use the same topic names that appear in the mind map (a branch or subtopic label) or in the deadlines list, so a wrong answer can be traced back to a recognizable topic the user can go review.
-- studyPlan: a day-by-day plan with one entry per study day from ${studyStartDate} through the last deadline. Front-load harder or foundational topics earlier, and schedule review and quiz days immediately before each deadline. Each day also needs "estimatedMinutes": a rough, honest estimate of study time in minutes for that day, based on how much material and how many tasks that day covers (a light review day might be 20-30 minutes, a day introducing several new foundational topics might be 60-90 minutes).`;
+${instructions}`;
+  } else {
+    materialTruncated = material.images.length > MAX_MATERIAL_IMAGES;
+    const images = materialTruncated
+      ? material.images.slice(0, MAX_MATERIAL_IMAGES)
+      : material.images;
+
+    content = [
+      ...images.map(
+        (image): Anthropic.ImageBlockParam => ({
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: image.mediaType,
+            data: image.base64,
+          },
+        }),
+      ),
+      {
+        type: "text",
+        text: `You are an expert study coach. The images above are photos of a student's study material (handwritten or printed notes, textbook pages, or slides), in reading order. Read and interpret their content carefully, including any handwriting, before generating a complete study package from them and the deadlines below.
+
+Study start date: ${studyStartDate}
+
+Deadlines:
+${deadlinesList}
+
+${instructions}`,
+      },
+    ];
+  }
 
   const stream = client.messages.stream({
     model: MODEL,
@@ -101,7 +156,7 @@ Generate:
     output_config: {
       format: zodOutputFormat(StudyPackageSchema),
     },
-    messages: [{ role: "user", content: prompt }],
+    messages: [{ role: "user", content }],
   });
 
   const message = await stream.finalMessage();

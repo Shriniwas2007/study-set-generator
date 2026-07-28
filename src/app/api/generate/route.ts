@@ -1,14 +1,33 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { extractTextFromPdf } from "@/lib/pdf";
-import { generateStudyPackage } from "@/lib/claude";
+import {
+  generateStudyPackage,
+  type MaterialImage,
+  type MaterialImageMediaType,
+  type StudyMaterial,
+} from "@/lib/claude";
 import type { DeadlineEntry } from "@/types/study";
+
+const SUPPORTED_IMAGE_MEDIA_TYPES: MaterialImageMediaType[] = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+];
+
+function isSupportedImageMediaType(
+  type: string,
+): type is MaterialImageMediaType {
+  return (SUPPORTED_IMAGE_MEDIA_TYPES as string[]).includes(type);
+}
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
 
   const pastedText = formData.get("text");
   const file = formData.get("file");
+  const imageFiles = formData.getAll("images").filter((v): v is File => v instanceof File);
   const studyStartDate = formData.get("studyStartDate");
   const deadlinesRaw = formData.get("deadlines");
 
@@ -43,24 +62,45 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let materialText = "";
-  if (file instanceof File) {
-    const buffer = Buffer.from(await file.arrayBuffer());
-    materialText = await extractTextFromPdf(buffer);
-  } else if (typeof pastedText === "string") {
-    materialText = pastedText;
-  }
+  let material: StudyMaterial;
 
-  if (!materialText.trim()) {
-    return NextResponse.json(
-      { error: "Study material (file or text) is required" },
-      { status: 400 },
-    );
+  if (imageFiles.length > 0) {
+    const images: MaterialImage[] = [];
+    for (const image of imageFiles) {
+      if (!isSupportedImageMediaType(image.type)) {
+        return NextResponse.json(
+          {
+            error: `Unsupported image type "${image.type || "unknown"}" for "${image.name}". Please upload JPG, PNG, GIF, or WEBP images.`,
+          },
+          { status: 400 },
+        );
+      }
+      const buffer = Buffer.from(await image.arrayBuffer());
+      images.push({ base64: buffer.toString("base64"), mediaType: image.type });
+    }
+    material = { type: "images", images };
+  } else {
+    let materialText = "";
+    if (file instanceof File) {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      materialText = await extractTextFromPdf(buffer);
+    } else if (typeof pastedText === "string") {
+      materialText = pastedText;
+    }
+
+    if (!materialText.trim()) {
+      return NextResponse.json(
+        { error: "Study material (file, text, or images) is required" },
+        { status: 400 },
+      );
+    }
+
+    material = { type: "text", text: materialText };
   }
 
   try {
     const { studyPackage, materialTruncated } = await generateStudyPackage(
-      materialText,
+      material,
       deadlines,
       studyStartDate,
     );
