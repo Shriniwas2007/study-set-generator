@@ -8,6 +8,7 @@ import { FlashcardsView } from "@/components/FlashcardsView";
 import { MindMapView } from "@/components/MindMapView";
 import { QuizView } from "@/components/QuizView";
 import { StudyPlanView } from "@/components/StudyPlanView";
+import { KeyPointsView } from "@/components/KeyPointsView";
 import type { DeadlineEntry, StudyPackage } from "@/types/study";
 
 const RESULT_TABS = [
@@ -15,6 +16,7 @@ const RESULT_TABS = [
   { id: "mindmap", label: "Mind Map" },
   { id: "quiz", label: "Quiz" },
   { id: "plan", label: "Study Plan" },
+  { id: "keypoints", label: "Important Points" },
 ];
 
 function today(): string {
@@ -202,6 +204,9 @@ export default function Home() {
               {activeResultTab === "quiz" && <QuizView quiz={result.quiz} />}
               {activeResultTab === "plan" && (
                 <StudyPlanView studyPlan={result.studyPlan} />
+              )}
+              {activeResultTab === "keypoints" && (
+                <KeyPointsView keyPoints={result.keyPoints} />
               )}
             </div>
           </section>

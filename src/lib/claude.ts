@@ -70,11 +70,17 @@ const StudyPlanDaySchema = z.object({
   estimatedMinutes: z.number().int().min(1),
 });
 
+const KeyPointGroupSchema = z.object({
+  topic: z.string(),
+  points: z.array(z.string()),
+});
+
 const StudyPackageSchema = z.object({
   flashcards: z.array(FlashcardSchema),
   mindMap: MindMapSchema,
   quiz: z.array(QuizQuestionSchema),
   studyPlan: z.array(StudyPlanDaySchema),
+  keyPoints: z.array(KeyPointGroupSchema),
 });
 
 export interface GenerateStudyPackageResult {
@@ -95,7 +101,8 @@ export async function generateStudyPackage(
 - flashcards: question/answer pairs covering the key concepts in the material.
 - mindMap: a hierarchical breakdown of the material's topic structure, nested up to three levels below the root topic (leave "subtopics" empty on nodes that don't need to go deeper).
 - quiz: multiple-choice questions, each with exactly 4 options, a zero-based correctIndex, an explanation of the correct answer, and a "topic" field naming the specific topic or subtopic it tests. Use the same topic names that appear in the mind map (a branch or subtopic label) or in the deadlines list, so a wrong answer can be traced back to a recognizable topic the user can go review.
-- studyPlan: a day-by-day plan with one entry per study day from ${studyStartDate} through the last deadline. Front-load harder or foundational topics earlier, and schedule review and quiz days immediately before each deadline. Each day also needs "estimatedMinutes": a rough, honest estimate of study time in minutes for that day, based on how much material and how many tasks that day covers (a light review day might be 20-30 minutes, a day introducing several new foundational topics might be 60-90 minutes).`;
+- studyPlan: a day-by-day plan with one entry per study day from ${studyStartDate} through the last deadline. Front-load harder or foundational topics earlier, and schedule review and quiz days immediately before each deadline. Each day also needs "estimatedMinutes": a rough, honest estimate of study time in minutes for that day, based on how much material and how many tasks that day covers (a light review day might be 20-30 minutes, a day introducing several new foundational topics might be 60-90 minutes).
+- keyPoints: a concise, scannable "cram sheet" of the material's most exam-relevant facts — distinct from the flashcards (which are Q&A pairs for active recall) and the mind map (which shows structural relationships). Group entries under topic headings, reusing the same topic names as the mind map or quiz where they overlap. Under each topic, list the specific named terms, key numbers or values, definitions, and important distinctions worth memorizing directly — the things a student would want to reread in the last 10 minutes before a test, not restate a whole concept. Keep each point to one short line, and wrap the specific term or value it's defining in double asterisks so it can be bolded, e.g. "**Mitochondria** — site of cellular respiration and ATP production."`;
 
   let materialTruncated: boolean;
   let content: string | Anthropic.ContentBlockParam[];

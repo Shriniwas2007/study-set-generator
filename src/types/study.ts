@@ -37,11 +37,17 @@ export interface StudyPlanDay {
   estimatedMinutes: number;
 }
 
+export interface KeyPointGroup {
+  topic: string;
+  points: string[];
+}
+
 export interface StudyPackage {
   flashcards: Flashcard[];
   mindMap: MindMap;
   quiz: QuizQuestion[];
   studyPlan: StudyPlanDay[];
+  keyPoints: KeyPointGroup[];
 }
 
 export interface DeadlineEntry {
